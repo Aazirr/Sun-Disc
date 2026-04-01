@@ -223,10 +223,11 @@ If you want, the next step can be scaffolding the actual monorepo folders and st
 
 ## Current Status
 
-Feature 1 is implemented:
+Feature 2 is implemented (includes Feature 1):
 - Flask backend scaffold with health endpoint.
-- React frontend scaffold with health status card.
-- Frontend requests backend health from /api/health.
+- POST /api/tests/run creates a run with QUEUED status.
+- GET /api/runs returns recent runs from SQLite storage.
+- React dashboard includes a Run Test form and runs table.
 
 ## Run Feature 1 Locally
 

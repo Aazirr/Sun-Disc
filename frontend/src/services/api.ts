@@ -10,17 +10,24 @@ export type TestRun = {
   base_url: string | null;
   environment: string | null;
   created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+  duration_ms: number | null;
+  error_message: string | null;
 };
 
 export type CreateRunRequest = {
   test_name: string;
   base_url?: string;
   environment?: string;
+  username?: string;
+  password?: string;
 };
 
 export type CreateRunResponse = {
   run_id: number;
   status: string;
+  error_message?: string | null;
 };
 
 type ListRunsResponse = {
@@ -49,7 +56,8 @@ export async function createRun(payload: CreateRunRequest): Promise<CreateRunRes
   });
 
   if (!response.ok) {
-    throw new Error(`Create run request failed: ${response.status}`);
+    const failureBody = (await response.text()) || "Unknown error";
+    throw new Error(`Create run request failed: ${response.status} - ${failureBody}`);
   }
 
   return response.json() as Promise<CreateRunResponse>;

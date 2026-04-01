@@ -22,6 +22,8 @@ function App() {
   const [testName, setTestName] = useState<string>("login_test");
   const [baseUrl, setBaseUrl] = useState<string>("");
   const [environment, setEnvironment] = useState<string>("staging");
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
 
   useEffect(() => {
     let isMounted = true;
@@ -76,6 +78,8 @@ function App() {
         test_name: testName,
         base_url: baseUrl || undefined,
         environment: environment || undefined,
+        username: username || undefined,
+        password: password || undefined,
       });
 
       const updatedRuns = await fetchRuns();
@@ -138,6 +142,25 @@ function App() {
             />
           </label>
 
+          <label>
+            Username (optional)
+            <input
+              value={username}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setUsername(event.target.value)}
+              placeholder="qa@example.com"
+            />
+          </label>
+
+          <label>
+            Password (optional)
+            <input
+              type="password"
+              value={password}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setPassword(event.target.value)}
+              placeholder="******"
+            />
+          </label>
+
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Submitting..." : "Run Test"}
           </button>
@@ -160,7 +183,9 @@ function App() {
                   <th>Test</th>
                   <th>Status</th>
                   <th>Environment</th>
+                  <th>Duration</th>
                   <th>Created</th>
+                  <th>Error</th>
                 </tr>
               </thead>
               <tbody>
@@ -168,9 +193,13 @@ function App() {
                   <tr key={run.id}>
                     <td>{run.id}</td>
                     <td>{run.test_name}</td>
-                    <td>{run.status}</td>
+                    <td>
+                      <span className={`run-status ${run.status.toLowerCase()}`}>{run.status}</span>
+                    </td>
                     <td>{run.environment || "-"}</td>
+                    <td>{run.duration_ms !== null ? `${run.duration_ms} ms` : "-"}</td>
                     <td>{run.created_at}</td>
+                    <td className="error-cell">{run.error_message || "-"}</td>
                   </tr>
                 ))}
               </tbody>

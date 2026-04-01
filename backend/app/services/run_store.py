@@ -21,10 +21,38 @@ def init_run_store() -> None:
                 status TEXT NOT NULL,
                 base_url TEXT,
                 environment TEXT,
-                created_at TEXT NOT NULL
+                created_at TEXT NOT NULL,
+                started_at TEXT,
+                finished_at TEXT,
+                duration_ms INTEGER,
+                error_message TEXT
             )
             """
         )
+
+        columns = {
+            row["name"]
+            for row in connection.execute("PRAGMA table_info(test_runs)").fetchall()
+        }
+
+        migration_columns = {
+            "started_at": "TEXT",
+            "finished_at": "TEXT",
+            "duration_ms": "INTEGER",
+            "error_message": "TEXT",
+        }
+
+        for column_name, column_type in migration_columns.items():
+            if column_name not in columns:
+                connection.execute(
+                    f"ALTER TABLE test_runs ADD COLUMN {column_name} {column_type}"
+                )
+
+
+def _serialize_row(row: sqlite3.Row | None) -> dict[str, Any]:
+    if row is None:
+        raise RuntimeError("Run row not found")
+    return dict(row)
 
 
 def create_test_run(payload: dict[str, Any]) -> dict[str, Any]:
@@ -47,24 +75,64 @@ def create_test_run(payload: dict[str, Any]) -> dict[str, Any]:
 
         row = connection.execute(
             """
-            SELECT id, test_name, status, base_url, environment, created_at
+            SELECT id, test_name, status, base_url, environment, created_at,
+                   started_at, finished_at, duration_ms, error_message
             FROM test_runs
             WHERE id = ?
             """,
             (run_id,),
         ).fetchone()
 
-    if row is None:
-        raise RuntimeError("Could not load created run")
+    return _serialize_row(row)
 
-    return dict(row)
+
+def update_run_status(
+    run_id: int,
+    status: str,
+    error_message: str | None = None,
+) -> dict[str, Any]:
+    with _get_connection() as connection:
+        if status == "RUNNING":
+            connection.execute(
+                """
+                UPDATE test_runs
+                SET status = ?, started_at = datetime('now'), finished_at = NULL,
+                    duration_ms = NULL, error_message = NULL
+                WHERE id = ?
+                """,
+                (status, run_id),
+            )
+        else:
+            connection.execute(
+                """
+                UPDATE test_runs
+                SET status = ?, finished_at = datetime('now'),
+                    duration_ms = CAST((julianday(datetime('now')) - julianday(started_at)) * 86400000 AS INTEGER),
+                    error_message = ?
+                WHERE id = ?
+                """,
+                (status, error_message, run_id),
+            )
+
+        row = connection.execute(
+            """
+            SELECT id, test_name, status, base_url, environment, created_at,
+                   started_at, finished_at, duration_ms, error_message
+            FROM test_runs
+            WHERE id = ?
+            """,
+            (run_id,),
+        ).fetchone()
+
+    return _serialize_row(row)
 
 
 def list_test_runs() -> list[dict[str, Any]]:
     with _get_connection() as connection:
         rows = connection.execute(
             """
-            SELECT id, test_name, status, base_url, environment, created_at
+            SELECT id, test_name, status, base_url, environment, created_at,
+                   started_at, finished_at, duration_ms, error_message
             FROM test_runs
             ORDER BY id DESC
             """

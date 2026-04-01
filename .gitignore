@@ -6,11 +6,15 @@ __pycache__/
 *.sqlite3
 .venv/
 venv/
+backend/sun_disc.db
 
 # Node
 node_modules/
 frontend/node_modules/
 frontend/dist/
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
 
 # OS / editor
 .DS_Store

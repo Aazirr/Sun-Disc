@@ -223,11 +223,13 @@ If you want, the next step can be scaffolding the actual monorepo folders and st
 
 ## Current Status
 
-Feature 2 is implemented (includes Feature 1):
+Feature 3 is implemented (includes Features 1 and 2):
 - Flask backend scaffold with health endpoint.
-- POST /api/tests/run creates a run with QUEUED status.
+- POST /api/tests/run creates a run and executes login_test with Selenium.
+- Run lifecycle transitions: QUEUED -> RUNNING -> PASS/FAIL.
+- Failures are saved with error_message and timing metadata.
 - GET /api/runs returns recent runs from SQLite storage.
-- React dashboard includes a Run Test form and runs table.
+- React dashboard includes credential inputs, status badges, duration, and error display.
 
 ## Run Feature 1 Locally
 

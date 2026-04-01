@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 from flask_cors import CORS
 
@@ -9,7 +11,14 @@ from app.services.run_store import init_run_store
 
 def create_app() -> Flask:
     app = Flask(__name__)
-    CORS(app)
+
+    cors_origins = os.getenv("CORS_ORIGINS", "*")
+    if cors_origins == "*":
+        CORS(app)
+    else:
+        parsed_origins = [origin.strip() for origin in cors_origins.split(",") if origin.strip()]
+        CORS(app, resources={r"/api/*": {"origins": parsed_origins}})
+
     init_run_store()
 
     app.register_blueprint(health_bp, url_prefix="/api")

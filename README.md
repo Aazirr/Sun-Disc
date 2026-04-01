@@ -253,3 +253,41 @@ npm run dev
 
 Open the frontend URL shown by Vite (usually http://localhost:5173).
 You should see backend health status change to ONLINE when backend is running.
+
+## Railway Deployment Prep
+
+This repository is now prepared for deployment to Railway as two services.
+
+### 1. Backend Service (Flask + Selenium)
+
+- Root Directory: `backend`
+- Runtime: Docker (uses `backend/Dockerfile`)
+- Start Command: already defined in Docker `CMD`
+
+Required backend environment variables:
+- `CORS_ORIGINS=https://<your-frontend-domain>`
+
+Optional notes:
+- Backend currently uses SQLite (`backend/sun_disc.db`).
+- For persistent production data, move to PostgreSQL in a later phase.
+
+### 2. Frontend Service (React)
+
+- Root Directory: `frontend`
+- Build Command: `npm install && npm run build`
+- Start Command: `npm run start`
+
+Required frontend environment variables:
+- `VITE_API_BASE_URL=https://<your-backend-domain>`
+
+### 3. Recommended Railway Setup Order
+
+1. Deploy backend service first.
+2. Copy backend public URL.
+3. Set frontend `VITE_API_BASE_URL` to backend URL and deploy frontend.
+4. Set backend `CORS_ORIGINS` to frontend URL and redeploy backend.
+
+### 4. Local Env Templates
+
+- Backend template: `backend/.env.example`
+- Frontend template: `frontend/.env.example`

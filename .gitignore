@@ -4,9 +4,15 @@ __pycache__/
 *.pyo
 *.pyd
 *.sqlite3
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
 .venv/
 venv/
 backend/sun_disc.db
+backend/.env
+frontend/.env
 
 # Node
 node_modules/

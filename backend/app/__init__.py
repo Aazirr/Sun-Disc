@@ -21,6 +21,14 @@ def create_app() -> Flask:
 
     init_run_store()
 
+    @app.get("/")
+    def root() -> tuple[dict, int]:
+        return {
+            "service": "sun-disc-backend",
+            "status": "ok",
+            "health": "/api/health",
+        }, 200
+
     app.register_blueprint(health_bp, url_prefix="/api")
     app.register_blueprint(tests_bp, url_prefix="/api")
     app.register_blueprint(runs_bp, url_prefix="/api")

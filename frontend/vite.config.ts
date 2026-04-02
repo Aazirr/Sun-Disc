@@ -9,6 +9,6 @@ export default defineConfig({
   preview: {
     host: "0.0.0.0",
     port: 4173,
-    allowedHosts: ["sun-disc-frontend.onrender.com"],
+    allowedHosts: ["localhost", ".localhost", "127.0.0.1", "[::1]", ".onrender.com"],
   },
 });

@@ -18,11 +18,17 @@ def create_app() -> Flask:
     app.logger.setLevel(logging.INFO)
 
     cors_origins = os.getenv("CORS_ORIGINS", "*")
+    default_origins = [
+        r"https://.*\.onrender\.com",
+        r"http://localhost:\d+",
+        r"http://127\.0\.0\.1:\d+",
+    ]
     if cors_origins == "*":
-        CORS(app)
+        CORS(app, resources={r"/api/*": {"origins": default_origins}})
     else:
         parsed_origins = [origin.strip() for origin in cors_origins.split(",") if origin.strip()]
-        CORS(app, resources={r"/api/*": {"origins": parsed_origins}})
+        allowed_origins = parsed_origins + default_origins
+        CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
 
     app.logger.info("sun-disc backend starting")
     app.logger.info("CORS origins: %s", cors_origins)

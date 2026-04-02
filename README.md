@@ -254,18 +254,19 @@ npm run dev
 Open the frontend URL shown by Vite (usually http://localhost:5173).
 You should see backend health status change to ONLINE when backend is running.
 
-## Railway Deployment Prep
+## Render Deployment Prep
 
-This repository is now prepared for deployment to Railway as two services.
+This repository is prepared for deployment to Render as two services managed by `render.yaml`.
 
 ### 1. Backend Service (Flask + Selenium)
 
-- Root Directory: `backend`
+- Service Type: Web Service
 - Runtime: Docker (uses `backend/Dockerfile`)
-- Start Command: already defined in Docker `CMD`
+- Root Directory: `backend`
+- Health Check Path: `/api/health`
 
 Required backend environment variables:
-- `CORS_ORIGINS=https://<your-frontend-domain>`
+- `CORS_ORIGINS=https://<your-frontend-service>.onrender.com`
 
 Optional notes:
 - Backend currently uses SQLite (`backend/sun_disc.db`).
@@ -273,21 +274,26 @@ Optional notes:
 
 ### 2. Frontend Service (React)
 
+- Service Type: Static Site
 - Root Directory: `frontend`
 - Build Command: `npm install && npm run build`
-- Start Command: `npm run start`
+- Publish Directory: `dist`
 
 Required frontend environment variables:
-- `VITE_API_BASE_URL=https://<your-backend-domain>`
+- `VITE_API_BASE_URL=https://<your-backend-service>.onrender.com`
 
-### 3. Recommended Railway Setup Order
+### 3. Recommended Render Setup Order
 
-1. Deploy backend service first.
-2. Copy backend public URL.
-3. Set frontend `VITE_API_BASE_URL` to backend URL and deploy frontend.
-4. Set backend `CORS_ORIGINS` to frontend URL and redeploy backend.
+1. Deploy the backend service first.
+2. Copy the backend public URL.
+3. Deploy the frontend static site with `VITE_API_BASE_URL` set to that backend URL.
+4. Set backend `CORS_ORIGINS` to the frontend URL and redeploy the backend.
 
-### 4. Local Env Templates
+### 4. Blueprint File
+
+- Render blueprint: `render.yaml`
+
+### 5. Local Env Templates
 
 - Backend template: `backend/.env.example`
 - Frontend template: `frontend/.env.example`

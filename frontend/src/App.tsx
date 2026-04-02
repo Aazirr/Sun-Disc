@@ -40,6 +40,7 @@ function App() {
         if (!isMounted) {
           return;
         }
+        console.error("Health load failed", err);
         setHealthState("offline");
         setHealthError(err instanceof Error ? err.message : "Unknown health check error");
       }
@@ -56,6 +57,7 @@ function App() {
         if (!isMounted) {
           return;
         }
+        console.error("Run list load failed", err);
         setRunsError(err instanceof Error ? err.message : "Unknown runs fetch error");
       }
     }
@@ -85,6 +87,7 @@ function App() {
       const updatedRuns = await fetchRuns();
       setRuns(updatedRuns);
     } catch (err) {
+      console.error("Run submit failed", err);
       setSubmitError(err instanceof Error ? err.message : "Unknown run create error");
     } finally {
       setIsSubmitting(false);

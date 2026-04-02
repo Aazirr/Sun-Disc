@@ -39,13 +39,20 @@ const API_BASE_URL =
   "http://localhost:5000";
 
 export async function fetchHealth(): Promise<HealthResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/health`);
+  const endpoint = `${API_BASE_URL}/api/health`;
 
-  if (!response.ok) {
-    throw new Error(`Health request failed: ${response.status}`);
+  try {
+    const response = await fetch(endpoint);
+
+    if (!response.ok) {
+      const failureBody = (await response.text()) || "Unknown error";
+      throw new Error(`Health request failed: ${response.status} - ${failureBody}`);
+    }
+
+    return response.json() as Promise<HealthResponse>;
+  } catch (error) {
+    throw new Error(`Health fetch failed for ${endpoint}. Check API URL, CORS, and backend logs. Original error: ${error instanceof Error ? error.message : String(error)}`);
   }
-
-  return response.json() as Promise<HealthResponse>;
 }
 
 export async function createRun(payload: CreateRunRequest): Promise<CreateRunResponse> {
@@ -66,12 +73,19 @@ export async function createRun(payload: CreateRunRequest): Promise<CreateRunRes
 }
 
 export async function fetchRuns(): Promise<TestRun[]> {
-  const response = await fetch(`${API_BASE_URL}/api/runs`);
+  const endpoint = `${API_BASE_URL}/api/runs`;
 
-  if (!response.ok) {
-    throw new Error(`Fetch runs request failed: ${response.status}`);
+  try {
+    const response = await fetch(endpoint);
+
+    if (!response.ok) {
+      const failureBody = (await response.text()) || "Unknown error";
+      throw new Error(`Fetch runs request failed: ${response.status} - ${failureBody}`);
+    }
+
+    const data = (await response.json()) as ListRunsResponse;
+    return data.items;
+  } catch (error) {
+    throw new Error(`Fetch runs failed for ${endpoint}. Original error: ${error instanceof Error ? error.message : String(error)}`);
   }
-
-  const data = (await response.json()) as ListRunsResponse;
-  return data.items;
 }

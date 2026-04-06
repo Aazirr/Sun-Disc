@@ -185,6 +185,15 @@ th {
   font-weight: 700;
 }
 
+a {
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+a:hover {
+  color: #1e40af;
+}
+
 .error-cell {
   max-width: 320px;
   color: #991b1b;

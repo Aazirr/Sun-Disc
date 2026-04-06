@@ -1,5 +1,6 @@
 from flask import Blueprint, current_app, jsonify, request
 
+from app.automation.test_login import TestExecutionError
 from app.services.run_store import create_test_run, update_run_status
 from app.services.test_runner import execute_test
 
@@ -20,9 +21,17 @@ def run_test() -> tuple[dict, int]:
     run_state = update_run_status(run_id, "RUNNING")
 
     try:
-        execute_test(str(created_run["test_name"]), payload)
+        execute_test(run_id, str(created_run["test_name"]), payload)
         run_state = update_run_status(run_id, "PASS")
         current_app.logger.info("Run %s completed PASS", run_id)
+    except TestExecutionError as exc:
+        run_state = update_run_status(
+            run_id,
+            "FAIL",
+            str(exc),
+            exc.screenshot_path,
+        )
+        current_app.logger.exception("Run %s failed with screenshot=%s", run_id, exc.screenshot_path)
     except Exception as exc:
         run_state = update_run_status(run_id, "FAIL", str(exc))
         current_app.logger.exception("Run %s failed", run_id)
@@ -33,6 +42,7 @@ def run_test() -> tuple[dict, int]:
                 "run_id": run_state["id"],
                 "status": run_state["status"],
                 "error_message": run_state["error_message"],
+                "screenshot_path": run_state["screenshot_path"],
             }
         ),
         201,

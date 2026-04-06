@@ -14,6 +14,7 @@ export type TestRun = {
   finished_at: string | null;
   duration_ms: number | null;
   error_message: string | null;
+  screenshot_path: string | null;
 };
 
 export type CreateRunRequest = {
@@ -38,8 +39,14 @@ const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() ||
   "http://localhost:5000";
 
+function buildApiUrl(path: string): string {
+  const normalizedBase = API_BASE_URL.replace(/\/+$/, "");
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${normalizedBase}${normalizedPath}`;
+}
+
 export async function fetchHealth(): Promise<HealthResponse> {
-  const endpoint = `${API_BASE_URL}/api/health`;
+  const endpoint = buildApiUrl("/api/health");
 
   try {
     const response = await fetch(endpoint);
@@ -56,7 +63,7 @@ export async function fetchHealth(): Promise<HealthResponse> {
 }
 
 export async function createRun(payload: CreateRunRequest): Promise<CreateRunResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/tests/run`, {
+  const response = await fetch(buildApiUrl("/api/tests/run"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -73,7 +80,7 @@ export async function createRun(payload: CreateRunRequest): Promise<CreateRunRes
 }
 
 export async function fetchRuns(): Promise<TestRun[]> {
-  const endpoint = `${API_BASE_URL}/api/runs`;
+  const endpoint = buildApiUrl("/api/runs");
 
   try {
     const response = await fetch(endpoint);
@@ -88,4 +95,8 @@ export async function fetchRuns(): Promise<TestRun[]> {
   } catch (error) {
     throw new Error(`Fetch runs failed for ${endpoint}. Original error: ${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+export function getRunScreenshotUrl(runId: number): string {
+  return buildApiUrl(`/api/runs/${runId}/screenshot`);
 }

@@ -4,6 +4,7 @@ import {
   createRun,
   fetchHealth,
   fetchRuns,
+  getRunScreenshotUrl,
   type HealthResponse,
   type TestRun,
 } from "./services/api";
@@ -188,6 +189,7 @@ function App() {
                   <th>Environment</th>
                   <th>Duration</th>
                   <th>Created</th>
+                  <th>Screenshot</th>
                   <th>Error</th>
                 </tr>
               </thead>
@@ -202,6 +204,15 @@ function App() {
                     <td>{run.environment || "-"}</td>
                     <td>{run.duration_ms !== null ? `${run.duration_ms} ms` : "-"}</td>
                     <td>{run.created_at}</td>
+                    <td>
+                      {run.screenshot_path ? (
+                        <a href={getRunScreenshotUrl(run.id)} target="_blank" rel="noreferrer">
+                          View
+                        </a>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
                     <td className="error-cell">{run.error_message || "-"}</td>
                   </tr>
                 ))}

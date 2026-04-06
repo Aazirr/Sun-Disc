@@ -8,6 +8,14 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
+from app.services.screenshot_service import save_failure_screenshot
+
+
+class TestExecutionError(Exception):
+    def __init__(self, message: str, screenshot_path: str | None = None) -> None:
+        super().__init__(message)
+        self.screenshot_path = screenshot_path
+
 
 def _build_driver() -> webdriver.Chrome:
     options = Options()
@@ -32,7 +40,12 @@ def _find_first(driver: webdriver.Chrome, selectors: list[str]):
     return None
 
 
-def run_login_test(base_url: str, username: str | None = None, password: str | None = None) -> None:
+def run_login_test(
+    base_url: str,
+    run_id: int,
+    username: str | None = None,
+    password: str | None = None,
+) -> None:
     if not base_url:
         raise ValueError("base_url is required for login_test")
 
@@ -115,6 +128,10 @@ def run_login_test(base_url: str, username: str | None = None, password: str | N
             except TimeoutException:
                 # The run is still valid if the page performs long client redirects.
                 pass
+
+    except Exception as exc:
+        screenshot_path = save_failure_screenshot(driver, run_id)
+        raise TestExecutionError(str(exc), screenshot_path) from exc
 
     finally:
         driver.quit()

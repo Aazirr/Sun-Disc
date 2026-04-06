@@ -25,7 +25,8 @@ def init_run_store() -> None:
                 started_at TEXT,
                 finished_at TEXT,
                 duration_ms INTEGER,
-                error_message TEXT
+                error_message TEXT,
+                screenshot_path TEXT
             )
             """
         )
@@ -40,6 +41,7 @@ def init_run_store() -> None:
             "finished_at": "TEXT",
             "duration_ms": "INTEGER",
             "error_message": "TEXT",
+            "screenshot_path": "TEXT",
         }
 
         for column_name, column_type in migration_columns.items():
@@ -76,7 +78,7 @@ def create_test_run(payload: dict[str, Any]) -> dict[str, Any]:
         row = connection.execute(
             """
             SELECT id, test_name, status, base_url, environment, created_at,
-                   started_at, finished_at, duration_ms, error_message
+                     started_at, finished_at, duration_ms, error_message, screenshot_path
             FROM test_runs
             WHERE id = ?
             """,
@@ -90,6 +92,7 @@ def update_run_status(
     run_id: int,
     status: str,
     error_message: str | None = None,
+    screenshot_path: str | None = None,
 ) -> dict[str, Any]:
     with _get_connection() as connection:
         if status == "RUNNING":
@@ -97,7 +100,7 @@ def update_run_status(
                 """
                 UPDATE test_runs
                 SET status = ?, started_at = datetime('now'), finished_at = NULL,
-                    duration_ms = NULL, error_message = NULL
+                    duration_ms = NULL, error_message = NULL, screenshot_path = NULL
                 WHERE id = ?
                 """,
                 (status, run_id),
@@ -108,16 +111,17 @@ def update_run_status(
                 UPDATE test_runs
                 SET status = ?, finished_at = datetime('now'),
                     duration_ms = CAST((julianday(datetime('now')) - julianday(started_at)) * 86400000 AS INTEGER),
-                    error_message = ?
+                    error_message = ?,
+                    screenshot_path = ?
                 WHERE id = ?
                 """,
-                (status, error_message, run_id),
+                (status, error_message, screenshot_path, run_id),
             )
 
         row = connection.execute(
             """
             SELECT id, test_name, status, base_url, environment, created_at,
-                   started_at, finished_at, duration_ms, error_message
+                     started_at, finished_at, duration_ms, error_message, screenshot_path
             FROM test_runs
             WHERE id = ?
             """,
@@ -132,10 +136,25 @@ def list_test_runs() -> list[dict[str, Any]]:
         rows = connection.execute(
             """
             SELECT id, test_name, status, base_url, environment, created_at,
-                   started_at, finished_at, duration_ms, error_message
+                   started_at, finished_at, duration_ms, error_message, screenshot_path
             FROM test_runs
             ORDER BY id DESC
             """
         ).fetchall()
 
     return [dict(row) for row in rows]
+
+
+def get_test_run(run_id: int) -> dict[str, Any] | None:
+    with _get_connection() as connection:
+        row = connection.execute(
+            """
+            SELECT id, test_name, status, base_url, environment, created_at,
+                   started_at, finished_at, duration_ms, error_message, screenshot_path
+            FROM test_runs
+            WHERE id = ?
+            """,
+            (run_id,),
+        ).fetchone()
+
+    return dict(row) if row is not None else None

@@ -1,11 +1,26 @@
 import sqlite3
+import os
 from pathlib import Path
 from typing import Any
 
-DB_PATH = Path(__file__).resolve().parents[2] / "sun_disc.db"
+
+def _get_data_dir() -> Path:
+    data_dir_env = os.getenv("DATA_DIR")
+    if data_dir_env:
+        return Path(data_dir_env)
+
+    # Vercel serverless functions can only write to /tmp.
+    if os.getenv("VERCEL"):
+        return Path("/tmp")
+
+    return Path(__file__).resolve().parents[2]
+
+
+DB_PATH = _get_data_dir() / "sun_disc.db"
 
 
 def _get_connection() -> sqlite3.Connection:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(DB_PATH)
     connection.row_factory = sqlite3.Row
     return connection

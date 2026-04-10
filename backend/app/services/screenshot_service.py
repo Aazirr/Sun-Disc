@@ -1,11 +1,24 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Optional
 
 from selenium.webdriver import Chrome
 
-SCREENSHOT_DIR = Path(__file__).resolve().parents[2] / "storage" / "screenshots"
+
+def _get_data_dir() -> Path:
+    data_dir_env = os.getenv("DATA_DIR")
+    if data_dir_env:
+        return Path(data_dir_env)
+
+    if os.getenv("VERCEL"):
+        return Path("/tmp")
+
+    return Path(__file__).resolve().parents[2]
+
+
+SCREENSHOT_DIR = _get_data_dir() / "storage" / "screenshots"
 
 
 def ensure_screenshot_dir() -> Path:
